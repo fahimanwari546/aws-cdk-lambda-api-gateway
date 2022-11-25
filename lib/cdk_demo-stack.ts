@@ -1,16 +1,29 @@
-import * as cdk from 'aws-cdk-lib';
-import { Construct } from 'constructs';
-// import * as sqs from 'aws-cdk-lib/aws-sqs';
+import {  Stack, StackProps } from "aws-cdk-lib";
+import { Construct } from "constructs";
+import { Function, Runtime, Code } from "aws-cdk-lib/aws-lambda";
+import { RestApi, LambdaIntegration } from "aws-cdk-lib/aws-apigateway";
+import * as path from 'path'
 
-export class CdkDemoStack extends cdk.Stack {
-  constructor(scope: Construct, id: string, props?: cdk.StackProps) {
+export class CdkDemoStack extends Stack {
+  constructor(scope: Construct, id: string, props?: StackProps) {
     super(scope, id, props);
 
-    // The code that defines your stack goes here
+    // lamda function 
 
-    // example resource
-    // const queue = new sqs.Queue(this, 'CdkDemoQueue', {
-    //   visibilityTimeout: cdk.Duration.seconds(300)
-    // });
+    const putTodoLambda = new Function(this,"PutTodoLambdaHandler",{
+      runtime: Runtime.NODEJS_14_X,
+      code: Code.fromAsset(path.resolve(__dirname, 'functions')),
+      handler: "put-todo.saveHello",
+
+    })
+
+
+//  api gateway 
+    const api = new RestApi(this, "todo-api")
+
+    api.root
+    .resourceForPath("hello")
+    .addMethod("POST", new LambdaIntegration(putTodoLambda))
+
   }
 }
